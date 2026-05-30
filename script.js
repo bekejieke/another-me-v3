@@ -885,68 +885,39 @@ function closeCatChat() {
   chat.setAttribute("aria-hidden", "true");
 }
 
-let cachedLetters = null;
-let cachedLettersAt = 0;
-
-async function getLettersFromAPI() {
-  if (cachedLetters && Date.now() - cachedLettersAt < 30000) return cachedLetters;
+function getStoredLetters() {
   try {
-    const res = await fetch("/api/letters");
-    if (!res.ok) throw new Error("API error");
-    cachedLetters = await res.json();
-    cachedLettersAt = Date.now();
-    return cachedLetters;
+    const stored = JSON.parse(localStorage.getItem(LETTER_STORAGE_KEY) || "[]");
+    return Array.isArray(stored) ? stored : [];
   } catch {
-    return seedLetters;
+    return [];
   }
 }
 
-async function getLetters() {
-  return await getLettersFromAPI();
+function getLetters() {
+  return [...getStoredLetters(), ...seedLetters];
 }
 
-async function saveUserLetter(letter) {
-  try {
-    const res = await fetch("/api/letters", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic: letter.topic, content: letter.content }),
-    });
-    if (res.ok) {
-      cachedLetters = null;
-      return await res.json();
-    }
-  } catch {}
-  const stored = JSON.parse(localStorage.getItem(LETTER_STORAGE_KEY) || "[]");
+function saveUserLetter(letter) {
+  const stored = getStoredLetters();
   localStorage.setItem(LETTER_STORAGE_KEY, JSON.stringify([letter, ...stored]));
-  return null;
 }
 
-async function updateStoredLetter(id, updater) {
-  try {
-    const letter = await (await fetch(`/api/letters/${id}`)).json();
-    const updated = updater(letter);
-    await fetch(`/api/letters/${id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: updated.replies?.[updated.replies.length - 1] || "" }),
-    });
-    cachedLetters = null;
-  } catch {}
-  const stored = JSON.parse(localStorage.getItem(LETTER_STORAGE_KEY) || "[]");
-  const next = stored.map((l) => l.id === id ? updater(l) : l);
+function updateStoredLetter(id, updater) {
+  const stored = getStoredLetters();
+  const next = stored.map((letter) => letter.id === id ? updater(letter) : letter);
   localStorage.setItem(LETTER_STORAGE_KEY, JSON.stringify(next));
 }
 
-async function activeLetter() {
-  const letters = await getLetters();
+function activeLetter() {
+  const letters = getLetters();
   return letters[activeLetterIndex % letters.length];
 }
 
-async function renderActiveLetter() {
+function renderActiveLetter() {
   const card = document.getElementById("treeLetterCard");
   if (!card) return;
-  const letter = await activeLetter();
+  const letter = activeLetter();
   if (!letter) {
     card.innerHTML = "<span>EMPTY TREE</span><h2>还没有信</h2><p>先寄出第一封职业困难吧。</p>";
     return;
@@ -993,8 +964,8 @@ function closeTreeMail() {
   panel.setAttribute("aria-hidden", "true");
 }
 
-async function nextLetter() {
-  const letters = await getLetters();
+function nextLetter() {
+  const letters = getLetters();
   if (!letters.length) return;
   activeLetterIndex = (activeLetterIndex + 1) % letters.length;
   renderActiveLetter();
@@ -1054,7 +1025,7 @@ function setupTreeMail() {
   });
   document.getElementById("nextLetterButton")?.addEventListener("click", nextLetter);
 
-  letterForm.addEventListener("submit", async (event) => {
+  letterForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const content = document.getElementById("treeLetterContent").value.trim();
     if (!content) {
@@ -1062,7 +1033,7 @@ function setupTreeMail() {
       return;
     }
     const topic = content.length > 18 ? `${content.slice(0, 18)}...` : content;
-    await saveUserLetter({
+    saveUserLetter({
       id: `letter-${Date.now()}`,
       topic: topic || "一封职业困难",
       content,

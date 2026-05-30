@@ -885,39 +885,68 @@ function closeCatChat() {
   chat.setAttribute("aria-hidden", "true");
 }
 
-function getStoredLetters() {
+let cachedLetters = null;
+let cachedLettersAt = 0;
+
+async function getLettersFromAPI() {
+  if (cachedLetters && Date.now() - cachedLettersAt < 30000) return cachedLetters;
   try {
-    const stored = JSON.parse(localStorage.getItem(LETTER_STORAGE_KEY) || "[]");
-    return Array.isArray(stored) ? stored : [];
+    const res = await fetch("/api/letters");
+    if (!res.ok) throw new Error("API error");
+    cachedLetters = await res.json();
+    cachedLettersAt = Date.now();
+    return cachedLetters;
   } catch {
-    return [];
+    return seedLetters;
   }
 }
 
-function getLetters() {
-  return [...getStoredLetters(), ...seedLetters];
+async function getLetters() {
+  return await getLettersFromAPI();
 }
 
-function saveUserLetter(letter) {
-  const stored = getStoredLetters();
+async function saveUserLetter(letter) {
+  try {
+    const res = await fetch("/api/letters", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic: letter.topic, content: letter.content }),
+    });
+    if (res.ok) {
+      cachedLetters = null;
+      return await res.json();
+    }
+  } catch {}
+  const stored = JSON.parse(localStorage.getItem(LETTER_STORAGE_KEY) || "[]");
   localStorage.setItem(LETTER_STORAGE_KEY, JSON.stringify([letter, ...stored]));
+  return null;
 }
 
-function updateStoredLetter(id, updater) {
-  const stored = getStoredLetters();
-  const next = stored.map((letter) => letter.id === id ? updater(letter) : letter);
+async function updateStoredLetter(id, updater) {
+  try {
+    const letter = await (await fetch(`/api/letters/${id}`)).json();
+    const updated = updater(letter);
+    await fetch(`/api/letters/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: updated.replies?.[updated.replies.length - 1] || "" }),
+    });
+    cachedLetters = null;
+  } catch {}
+  const stored = JSON.parse(localStorage.getItem(LETTER_STORAGE_KEY) || "[]");
+  const next = stored.map((l) => l.id === id ? updater(l) : l);
   localStorage.setItem(LETTER_STORAGE_KEY, JSON.stringify(next));
 }
 
-function activeLetter() {
-  const letters = getLetters();
+async function activeLetter() {
+  const letters = await getLetters();
   return letters[activeLetterIndex % letters.length];
 }
 
-function renderActiveLetter() {
+async function renderActiveLetter() {
   const card = document.getElementById("treeLetterCard");
   if (!card) return;
-  const letter = activeLetter();
+  const letter = await activeLetter();
   if (!letter) {
     card.innerHTML = "<span>EMPTY TREE</span><h2>还没有信</h2><p>先寄出第一封职业困难吧。</p>";
     return;
@@ -964,8 +993,8 @@ function closeTreeMail() {
   panel.setAttribute("aria-hidden", "true");
 }
 
-function nextLetter() {
-  const letters = getLetters();
+async function nextLetter() {
+  const letters = await getLetters();
   if (!letters.length) return;
   activeLetterIndex = (activeLetterIndex + 1) % letters.length;
   renderActiveLetter();
@@ -1025,7 +1054,7 @@ function setupTreeMail() {
   });
   document.getElementById("nextLetterButton")?.addEventListener("click", nextLetter);
 
-  letterForm.addEventListener("submit", (event) => {
+  letterForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const content = document.getElementById("treeLetterContent").value.trim();
     if (!content) {
@@ -1033,7 +1062,7 @@ function setupTreeMail() {
       return;
     }
     const topic = content.length > 18 ? `${content.slice(0, 18)}...` : content;
-    saveUserLetter({
+    await saveUserLetter({
       id: `letter-${Date.now()}`,
       topic: topic || "一封职业困难",
       content,
@@ -1104,8 +1133,7 @@ function offlineCatReply(text) {
 }
 
 function chatApiEndpoint() {
-  const isLocalStatic = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-  return isLocalStatic ? "https://another-me-main.vercel.app/api/chat" : "/api/chat";
+  return "/api/chat";
 }
 
 function relatedDouyinVideos(text) {

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Another Me · Pet</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-scene="pet">
+    <main class="web-frame world-page">
+      <section class="world-hero">
+        <video class="world-video-bg" autoplay muted loop playsinline preload="auto">
+          <source src="./world/world-background.mp4" type="video/mp4" />
+        </video>
+        <canvas id="stage" class="world-canvas" width="1280" height="720" aria-hidden="true"></canvas>
+        <nav class="world-nav" aria-label="主要导航">
+          <a href="./index.html">ANOTHER ME</a>
+          <div>
+            <a href="./index.html">孵化</a>
+          </div>
+        </nav>
+        <div class="world-copy">
+          <p class="eyebrow green">EMOTION COMPANION</p>
+          <img class="title-logo" src="./another-me-logo.png" alt="Another Me" />
+          <p>把情绪放进这个世界里，小猫会在你的场景中自由走动、停留、观察，然后用自己的节奏靠近。</p>
+        </div>
+        <div class="cat-chat-hint" id="catChatHint" role="button" tabindex="0">可以跟我聊天哦。</div>
+        <div class="tree-mail-hint" id="treeMailHint" aria-hidden="true">点树寄信或回答困难</div>
+        <div class="tree-actions" id="treeActions" aria-label="职业树洞操作" aria-hidden="true">
+          <button type="button" data-tree-open="send" aria-label="寄出信封">寄出信封</button>
+          <button type="button" data-tree-open="reply" aria-label="回答困难">回答困难</button>
+        </div>
+        <section class="cat-chat" id="catChat" aria-label="和小猫聊天" aria-hidden="true">
+          <div class="cat-chat-header">
+            <div>
+              <span class="cat-chat-kicker">CAREER MENTOR CAT</span>
+              <h1>问海海小猫</h1>
+            </div>
+            <button class="cat-chat-close" id="catChatClose" type="button" aria-label="关闭聊天">×</button>
+          </div>
+          <div class="cat-chat-messages" id="catChatMessages" aria-live="polite"></div>
+          <div class="cat-chat-quick" id="catChatQuick" aria-label="快速提问">
+            <span class="cat-chat-quick-label">试试问我：</span>
+            <div class="cat-chat-quick-chips">
+              <button type="button" data-quick-ask="职业树洞是什么？">职业树洞是什么</button>
+              <button type="button" data-quick-ask="职业树洞要怎么唤醒？">职业树洞怎么唤醒</button>
+              <button type="button" data-quick-ask="我刚毕业，要怎么开始规划职业？">怎么开始规划职业</button>
+              <button type="button" data-quick-ask="我该怎么选第一份工作？">怎么选第一份工作</button>
+            </div>
+          </div>
+          <form class="cat-chat-form" id="catChatForm">
+            <input
+              id="catChatInput"
+              name="message"
+              type="text"
+              autocomplete="off"
+              placeholder="问一个职业选择、求职或职场情绪问题"
+              aria-label="聊天内容"
+            />
+            <button type="submit">发送</button>
+          </form>
+        </section>
+        <section class="tree-mail" id="treeMail" aria-label="职业树洞信箱" aria-hidden="true">
+          <div class="tree-mail-header">
+            <div>
+              <span class="tree-mail-kicker">CAREER LETTER TREE</span>
+              <h1>职业树洞信箱</h1>
+            </div>
+            <div class="tree-mail-stamp" aria-hidden="true">MAIL</div>
+            <button class="tree-mail-close" id="treeMailClose" type="button" aria-label="关闭树洞信箱">×</button>
+          </div>
+          <div class="tree-mail-tabs" role="tablist" aria-label="树洞信箱操作">
+            <button class="is-active" id="sendLetterTab" type="button" data-mail-tab="send">寄出信封</button>
+            <button id="replyLetterTab" type="button" data-mail-tab="reply">回答困难</button>
+          </div>
+          <div class="tree-mail-panel is-active" id="sendLetterPanel">
+            <p class="tree-mail-intro">写一句职业卡点，折进信封里寄给树下的人。</p>
+            <form class="tree-letter-form" id="treeLetterForm">
+              <textarea id="treeLetterContent" rows="3" maxlength="300" placeholder="比如：我不知道该选稳定工作，还是去试一个喜欢但不确定的方向……" aria-label="职业困难内容"></textarea>
+              <button type="submit">投进树洞</button>
+            </form>
+            <div class="tree-mail-status" id="treeMailStatus" aria-live="polite"></div>
+          </div>
+          <div class="tree-mail-panel" id="replyLetterPanel">
+            <article class="tree-letter-card" id="treeLetterCard"></article>
+            <form class="tree-reply-form" id="treeReplyForm">
+              <textarea id="treeReplyContent" rows="4" maxlength="360" placeholder="写一段温柔、具体的回应给 TA" aria-label="回复职业困难"></textarea>
+              <div class="tree-reply-actions">
+                <button type="button" id="nextLetterButton">换一封</button>
+                <button type="submit">送出回复</button>
+              </div>
+            </form>
+            <div class="tree-reply-status" id="treeReplyStatus" aria-live="polite"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+    <script src="./video-resources.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>

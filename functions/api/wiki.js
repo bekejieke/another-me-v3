@@ -1,6 +1,6 @@
 // GET/POST /api/wiki — Wiki entries list and creation
 
-import { parseJsonField, jsonField, parsePagination } from '../lib/d1-client.js';
+import { parseJsonField, jsonField, parsePagination, hasDB } from '../lib/d1-client.js';
 import { buildDocVector, extractWikiLinks } from '../lib/wiki-engine.js';
 
 export async function onRequestGet(context) {
@@ -10,6 +10,8 @@ export async function onRequestGet(context) {
   const { limit, offset } = parsePagination(url);
 
   try {
+    if (!hasDB(env)) return Response.json([]);
+
     let results;
     if (category) {
       const { results: r } = await env.DB.prepare(
@@ -22,15 +24,9 @@ export async function onRequestGet(context) {
       ).bind(limit, offset).all();
       results = r;
     }
-
-    const entries = (results || []).map((row) => ({
-      ...row,
-      tags: parseJsonField(row.tags_json, []),
-    }));
-
-    return Response.json(entries);
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json((results || []).map(r => ({ ...r, tags: parseJsonField(r.tags_json, []) })));
+  } catch (e) {
+    return Response.json({ error: e.message }, { status: 500 });
   }
 }
 
@@ -40,45 +36,25 @@ export async function onRequestPost(context) {
   try {
     const body = await request.json();
     const { title, content, category = 'general', tags = [], source_url = '', source_title = '' } = body;
+    if (!title || !content) return Response.json({ error: '标题和内容不能为空' }, { status: 400 });
+    if (!hasDB(env)) return Response.json({ error: '数据库未配置' }, { status: 503 });
 
-    if (!title || !content) {
-      return Response.json({ error: '标题和内容不能为空' }, { status: 400 });
-    }
-
-    // Count total docs for IDF calculation
     const { totalDocs } = await env.DB.prepare('SELECT COUNT(*) as totalDocs FROM wiki_entries').first() || { totalDocs: 0 };
-    const corpusStats = { totalDocs: (totalDocs || 0) + 1, docFreq: {} };
-
-    const vector = buildDocVector(title, content, corpusStats);
-
+    const vector = buildDocVector(title, content, { totalDocs: (totalDocs || 0) + 1, docFreq: {} });
     const result = await env.DB.prepare(
       'INSERT INTO wiki_entries (title, content, category, tags_json, source_url, source_title, vector_tfidf) VALUES (?, ?, ?, ?, ?, ?, ?)'
     ).bind(title, content, category, jsonField(tags), source_url, source_title, JSON.stringify(vector)).run();
 
-    // Parse [[wiki-links]] and create cross-references
     const links = extractWikiLinks(content);
-    if (links.length > 0) {
-      for (const linkTitle of links) {
-        const target = await env.DB.prepare('SELECT id FROM wiki_entries WHERE title = ?').bind(linkTitle).first();
-        if (target) {
-          await env.DB.prepare(
-            'INSERT OR IGNORE INTO wiki_links (source_id, target_id) VALUES (?, ?)'
-          ).bind(result.meta.last_row_id, target.id).run();
-        }
+    for (const linkTitle of links) {
+      const target = await env.DB.prepare('SELECT id FROM wiki_entries WHERE title = ?').bind(linkTitle).first();
+      if (target) {
+        await env.DB.prepare('INSERT OR IGNORE INTO wiki_links (source_id, target_id) VALUES (?, ?)').bind(result.meta.last_row_id, target.id).run();
       }
     }
-
-    return Response.json({
-      id: result.meta.last_row_id,
-      title,
-      category,
-      tags,
-      links_found: links.length,
-    }, { status: 201 });
-  } catch (error) {
-    if (error.message && error.message.includes('UNIQUE constraint')) {
-      return Response.json({ error: '该标题已存在' }, { status: 409 });
-    }
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ id: result.meta.last_row_id, title, category, tags, links_found: links.length }, { status: 201 });
+  } catch (e) {
+    if (e.message && e.message.includes('UNIQUE constraint')) return Response.json({ error: '该标题已存在' }, { status: 409 });
+    return Response.json({ error: e.message }, { status: 500 });
   }
 }

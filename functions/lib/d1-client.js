@@ -1,5 +1,8 @@
 // D1 database helper utilities
-// Simple wrappers for common query patterns
+
+export function hasDB(env) {
+  return !!(env && env.DB && typeof env.DB.prepare === 'function');
+}
 
 export function jsonField(value, fallback = []) {
   if (value == null) return JSON.stringify(fallback);

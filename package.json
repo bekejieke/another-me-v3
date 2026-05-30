@@ -1,0 +1,7 @@
+{
+  "name": "another-me",
+  "private": true,
+  "scripts": {
+    "setup": "npx wrangler d1 create another-me-db && npx wrangler d1 execute another-me-db --file=migrations/001_init.sql && npx wrangler d1 execute another-me-db --file=seed/seed.sql && npx wrangler d1 execute another-me-db --file=scripts/seed-wiki.sql && echo '=== DONE === Now add ARK_API_KEY in Cloudflare Dashboard: Settings > Environment Variables > ARK_API_KEY = your-key'"
+  }
+}

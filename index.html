@@ -2,100 +2,26 @@
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>Another Me · 情绪陪伴</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Another Me · Hatch</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body data-scene="hatch">
-    <div class="phone-frame">
-      <!-- 顶部导航 -->
-      <header class="app-header">
-        <img class="header-logo" src="./another-me-logo.png" alt="Another Me" />
-        <span class="header-title">Another Me</span>
-      </header>
-
-      <!-- 主卡片区 -->
-      <main class="card-feed">
-        <!-- 卡片1：孵化金蛋 -->
-        <article class="douyin-card card-hatch">
-          <div class="card-media">
-            <canvas id="stage" class="hatch-canvas" width="720" height="720" aria-label="点击孵化金蛋"></canvas>
-            <div class="card-tag">点击孵化</div>
-          </div>
-          <div class="card-body">
-            <h2 class="card-title">孵化一颗金蛋</h2>
-            <p class="card-desc">点一下这颗蛋，它就会破壳。小猫会从金光里出现，走进你的世界。</p>
-            <div class="card-stats">
-              <span>3个阶段</span>
-              <span>·</span>
-              <span>1只小猫</span>
-              <span>·</span>
-              <span>无限陪伴</span>
-            </div>
-          </div>
-        </article>
-
-        <!-- 卡片2：海海小猫 -->
-        <article class="douyin-card card-chat">
-          <div class="card-media card-media-icon">
-            <div class="icon-circle icon-chat"></div>
-          </div>
-          <div class="card-body">
-            <h2 class="card-title">问海海小猫</h2>
-            <p class="card-desc">AI 职业导师 + 情绪树洞。聊职业规划、求职技巧、面试经验，或者就说说今天的焦虑。</p>
-            <div class="card-tags">
-              <span class="tag">职业规划</span>
-              <span class="tag">简历优化</span>
-              <span class="tag">面试模拟</span>
-            </div>
-          </div>
-        </article>
-
-        <!-- 卡片3：职业树洞 -->
-        <article class="douyin-card card-tree">
-          <div class="card-media card-media-icon">
-            <div class="icon-circle icon-tree"></div>
-          </div>
-          <div class="card-body">
-            <h2 class="card-title">职业树洞信箱</h2>
-            <p class="card-desc">匿名写下你的职业困难，它会像漂流瓶一样等一个温柔回应。或者捞起别人的信，给陌生人一点力量。</p>
-            <div class="card-tags">
-              <span class="tag">匿名寄信</span>
-              <span class="tag">漂流回信</span>
-            </div>
-          </div>
-        </article>
-
-        <!-- 卡片4：求职资源 -->
-        <article class="douyin-card card-resources">
-          <div class="card-media card-media-icon">
-            <div class="icon-circle icon-video"></div>
-          </div>
-          <div class="card-body">
-            <h2 class="card-title">求职视频资源库</h2>
-            <p class="card-desc">30+ 精选抖音视频，覆盖简历、面试、谈薪、校招、考公。AI 根据你的问题智能推荐。</p>
-            <div class="card-tags">
-              <span class="tag">简历技巧</span>
-              <span class="tag">面试实战</span>
-              <span class="tag">校招攻略</span>
-              <span class="tag">薪资谈判</span>
-            </div>
-          </div>
-        </article>
-      </main>
-
-      <!-- 底部导航 -->
-      <nav class="bottom-nav">
-        <a href="./index.html" class="nav-item active">
-          <span class="nav-icon">&#9679;</span>
-          <span class="nav-label">孵化</span>
-        </a>
-        <a href="./pet.html" class="nav-item">
-          <span class="nav-icon">&#9670;</span>
-          <span class="nav-label">小猫</span>
-        </a>
+    <main class="hatch-hero">
+      <canvas id="stage" class="hatch-canvas" width="720" height="720" aria-hidden="true"></canvas>
+      <nav class="world-nav" aria-label="主要导航">
+        <a href="./index.html">ANOTHER ME</a>
+        <div>
+          <a href="./pet.html">小猫</a>
+        </div>
       </nav>
-    </div>
+      <div class="world-copy">
+        <p class="eyebrow gold">HATCHING SIGNAL</p>
+        <img class="title-logo" src="./another-me-logo.png" alt="Another Me" />
+        <h2 class="title-sub">准备孵化</h2>
+        <p>这颗蛋已经听见你了。轻轻点一下它，它就会破壳，让那只小猫走进你的世界。</p>
+      </div>
+    </main>
     <script src="./script.js"></script>
   </body>
 </html>
